@@ -8,8 +8,9 @@ import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.util.List;
 
+//Repository using quarkus with javax
 @ApplicationScoped
-public class ProductRepo {
+public class ProductRepoJavax {
 
     @Inject
     EntityManager em;

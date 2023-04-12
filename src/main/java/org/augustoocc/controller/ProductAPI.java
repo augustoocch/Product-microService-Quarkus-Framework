@@ -3,7 +3,8 @@ package org.augustoocc.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.domain.Product;
-import org.augustoocc.repository.ProductRepo;
+import org.augustoocc.repository.ProductRepoJavax;
+import org.augustoocc.repository.ProductRepoSpring;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -19,19 +20,19 @@ import javax.ws.rs.Path;
 public class ProductAPI {
 
     @Inject
-    ProductRepo repository;
+    ProductRepoSpring repository;
 
     @GET
     public List<Product> list() {
        log.info("Request received - listing objects");
-        return repository.listProduct();
+        return repository.findAll();
 
     }
 
     @POST
     public Response createObject(Product p) {
         log.info("Request received - creating objects");
-        repository.createProduct(p);
+        repository.save(p);
         return Response.ok().build();
     }
 
@@ -39,22 +40,22 @@ public class ProductAPI {
     @Path("delete/{id}")
     public Response deleteObject(@PathParam("id") int id) {
         log.info("Request received - deleting object");
-        repository.deleteProduct(id);
+        repository.delete(repository.findById(id).get());
         return Response.ok().build();
     }
 
     @PUT
     public Response putObject (Product p) {
         log.info("Request received - putting objects");
-        repository.putObject(p);
+        repository.save(p);
         return Response.ok().build();
     }
 
     @GET
     @Path("/get-user/{id}")
-    public Response getProduct(@PathParam("id") int id) {
+    public Product getProduct(@PathParam("id") int id) {
         log.info("Request received - getting objects");
-        repository.getObject(id);
-        return Response.ok().build();
+        return repository.findById(id).get();
+
     }
 }
