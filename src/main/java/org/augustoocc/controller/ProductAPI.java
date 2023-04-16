@@ -47,7 +47,7 @@ public class ProductAPI {
     @PUT
     public Response putObject (Product p) {
         log.info("Request received - putting objects");
-        repository.save(p);
+        repository.save(repository.findById(p.getId()).get());
         return Response.ok().build();
     }
 
