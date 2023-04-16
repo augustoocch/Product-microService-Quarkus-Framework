@@ -1,8 +1,47 @@
 # microservice
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+Rest microservice made up with Quarkus framework (java). This API backend, allows the user to add products. In addittion to that, the database, is configured to connect with a Docker image of mysql. So each microservice has its own mysql db, making the service more funcional, scalable and secure. This microservice puts data that is consumed by consumer microservice, so they are connected. This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+If you want to download a mysql image from docker you have to execute the command
+
+```
+docker pull mysql
+```
+
+After that, just run the image and config the properties file to connect in the localhost
+If you want to have two microservices and connect with the correlated microservice (product microservice), you will have to create another db, in a separate docker image, so each microservice can be independent. To do that, you will have to create a docker-compose file. I give you this example, in wich I create two mysql images and I assign two different ports. Then, in the config, in each microservice, i choose the port in wich I have to connect to the DB
+
+```
+version: '3'
+services:
+  mysql1:
+    image: mysql
+    environment:
+     MYSQL_ROOT_PASSWORD: admin
+     MYSQL_USER: admin
+     MYSQL_HOST: localhost
+     MYSQL_PASSWORD: admin
+     MYSQL_DATABASE: product_db
+    ports:
+      - "3307:3306"
+  mysql2:
+    image: mysql
+    environment:
+     MYSQL_ROOT_PASSWORD: admin
+     MYSQL_USER: admin
+     MYSQL_HOST: localhost
+     MYSQL_PASSWORD: admin
+     MYSQL_DATABASE: customer_db
+    ports:
+      - "3308:3306"
+```
+
+After this, you should execute the command
+
+```
+docker-compose up -d
+```
+
 
 ## Running the application in dev mode
 
