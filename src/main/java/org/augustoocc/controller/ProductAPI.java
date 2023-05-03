@@ -1,15 +1,20 @@
 package org.augustoocc.controller;
 
 
+import io.smallrye.mutiny.Uni;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import lombok.extern.slf4j.Slf4j;
+import org.augustoocc.data.DataAccessObjects;
 import org.augustoocc.domain.Product;
-import org.augustoocc.repository.ProductRepoJavax;
-import org.augustoocc.repository.ProductRepoSpring;
+import org.augustoocc.repository.ProductRepository;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.ws.rs.Path;
 
@@ -20,42 +25,51 @@ import javax.ws.rs.Path;
 public class ProductAPI {
 
     @Inject
-    ProductRepoSpring repository;
+    ProductRepository repository;
+
+    @Inject
+    EventBus bus;
+
+    @Inject
+    DataAccessObjects dataAccessObjects;
+
+    @Inject
+    DateTimeFormatter logtimestamp;
 
     @GET
-    public List<Product> list() {
-       log.info("Request received - listing objects");
-        return repository.findAll();
-
+    public Uni<List<Product>> list() {
+        log.info("Request received - listing objects");
+        return repository.listAll();
     }
 
     @POST
-    public Response createObject(Product p) {
+    public Uni<Response> createObject(Product p) {
         log.info("Request received - creating objects");
-        repository.save(p);
-        return Response.ok().build();
+        return bus.<Product>request("add-product", p)
+                    .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
+                    .map(i -> Response.ok(i.body()).build());
+    }
+
+    @PUT
+    public Uni<Response> putObject (Product p) {
+        log.info("Request received - putting objects");
+        return bus.<Product>request("update-product", p)
+                .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
+                .map(i -> Response.ok(i.body()).build());
     }
 
     @DELETE
     @Path("delete/{id}")
-    public Response deleteObject(@PathParam("id") int id) {
-        log.info("Request received - deleting object");
-        repository.delete(repository.findById(id).get());
-        return Response.ok().build();
-    }
-
-    @PUT
-    public Response putObject (Product p) {
-        log.info("Request received - putting objects");
-        repository.save(repository.findById(p.getId()).get());
-        return Response.ok().build();
+    public Uni<Response> deleteObject(@PathParam("id") Long id) {
+        log.info("Request received - deleting objects");
+        return dataAccessObjects.deleteProduct(id);
     }
 
     @GET
     @Path("/get-user/{id}")
-    public Product getProduct(@PathParam("id") int id) {
-        log.info("Request received - getting objects");
-        return repository.findById(id).get();
-
+    public Uni<Response> getProduct(@PathParam("id") Long id) {
+        return bus.<Product>request("get-by-id", id)
+                .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
+                .map(i -> Response.ok(i.body()).build());
     }
 }
