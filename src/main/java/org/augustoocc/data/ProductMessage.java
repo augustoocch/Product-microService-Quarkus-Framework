@@ -11,13 +11,15 @@ import javax.enterprise.context.ApplicationScoped;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ApplicationScoped
 public class ProductMessage {
 
     private Long id;
     private Product product;
+
+    public ProductMessage (Long id, Product p) {
+        this.product = p;
+        this.id = id;
+    }
 
 
 }
