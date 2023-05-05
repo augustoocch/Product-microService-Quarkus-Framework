@@ -11,6 +11,7 @@ import org.augustoocc.validations.Validations;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -56,14 +57,12 @@ public class DataAccessObjects {
                 : Response.ok().status(404).build());
     }
 
-
-
-
-
-
-
-
-
+    @ConsumeEvent("get-by-id")
+    public Uni<Product> getById(@PathParam("{id}") Long id) {
+        log.info("Request received - getting customer");
+        return Panache.withTransaction(() -> productRepository.findById(id))
+                .onFailure().invoke(res -> log.error("Error recuperando productos ", res));
+    }
 
 
 }
