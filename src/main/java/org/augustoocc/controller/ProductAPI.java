@@ -5,6 +5,7 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.data.DataAccessObjects;
+import org.augustoocc.data.ProductMessage;
 import org.augustoocc.domain.Product;
 import org.augustoocc.repository.ProductRepository;
 
@@ -51,9 +52,11 @@ public class ProductAPI {
     }
 
     @PUT
-    public Uni<Response> putObject (Product p) {
+    @Path("update/{id}")
+    public Uni<Response> putObject (@PathParam("{id}") Long id, Product p) {
         log.info("Request received - putting objects");
-        return bus.<Product>request("update-product", p)
+        ProductMessage productMessage = new ProductMessage(id, p);
+        return bus.<Product>request("update-product", productMessage)
                 .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
                 .map(i -> Response.ok(i.body()).build());
     }
@@ -66,7 +69,7 @@ public class ProductAPI {
     }
 
     @GET
-    @Path("/get-user/{id}")
+    @Path("/get-product/{id}")
     public Uni<Response> getProduct(@PathParam("id") Long id) {
         return bus.<Product>request("get-by-id", id)
                 .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})

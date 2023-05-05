@@ -11,6 +11,7 @@ import org.augustoocc.validations.Validations;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
@@ -61,8 +62,28 @@ public class DataAccessObjects {
     public Uni<Product> getById(@PathParam("{id}") Long id) {
         log.info("Request received - getting customer");
         return Panache.withTransaction(() -> productRepository.findById(id))
-                .onFailure().invoke(res -> log.error("Error recuperando productos ", res));
+                .onFailure().invoke(res -> log.error("Error recovering products ", res));
     }
+
+    @ConsumeEvent("update-product")
+    @Transactional
+    public Uni<Product> updateCustomer(ProductMessage product) {
+        if (validate.postValidation(product.getProduct())) {
+            throw exception.nullValues("Put method 'add-customer', ");
+        }
+        log.info("Merging object with id: ", product.getId());
+        return Panache.withTransaction(() -> productRepository.findById(product.getId())
+                        .onItem().ifNotNull().invoke(entity -> {
+                            entity.setName(product.getProduct().getName());
+                            entity.setCode(product.getProduct().getCode());
+                            entity.setDescription(product.getProduct().getDescription());
+                        }))
+                .replaceWith(product.getProduct())
+                .onFailure().invoke(i -> exception.panacheFailure("Put method 'add-product'"));
+    }
+
+
+
 
 
 }
